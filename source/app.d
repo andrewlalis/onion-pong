@@ -25,7 +25,8 @@ int main() {
 	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	writeln("Initialized rendering system");
 
-	SDL_FillRect(surface, null, SDL_MapRGB((*surface).format, 0xFF, 0x00, 0xFF));
+	// Initially set the entire screen to black.
+	SDL_FillRect(surface, null, SDL_MapRGB((*surface).format, 0x00, 0x00, 0x00));
 	SDL_UpdateWindowSurface(window);
 
 
@@ -55,17 +56,8 @@ int main() {
 		updatePlayerPhysics(player);
 		
 		// render
-		SDL_FillRect(surface, null, SDL_MapRGB((*surface).format, 0xFF, 0x00, 0xFF));
-
-		Vec2i playerScreenPosition = Vec2i(cast(int) (player.position[0] * 800f), cast(int) (player.position[1] * 800f));
-		SDL_Rect playerRect;
-		playerRect.x = cast(int) (playerScreenPosition[0] - player.baseRadius / 2);
-		playerRect.y = cast(int) (playerScreenPosition[1] - player.baseRadius / 2);
-		playerRect.w = cast(int) player.baseRadius;
-		playerRect.h = cast(int) player.baseRadius;
-		writeln(playerRect);
-		SDL_FillRect(surface, &playerRect, SDL_MapRGB((*surface).format, 0xFF, 0x00, 0x00));
-
+		SDL_FillRect(surface, null, SDL_MapRGB((*surface).format, 0x00, 0x00, 0x00));
+		renderPlayer(player, surface);
 		SDL_UpdateWindowSurface(window);
 
 
@@ -93,7 +85,6 @@ void updatePlayerInputState(ref Player player, SDL_KeyboardEvent ke) {
 	} else if (ke.keysym.scancode == SDL_Scancode.SDL_SCANCODE_D) {
 		player.input.right = active;
 	}
-	writeln(player);
 }
 
 void updatePlayerPhysics(ref Player player) {
@@ -104,7 +95,6 @@ void updatePlayerPhysics(ref Player player) {
 	if (player.input.right) deltaV[0] = deltaV[0] + 1;
 	if (deltaV.mag2 > 0) {
 		player.velocity.add(deltaV.norm().mul(0.0005f));
-		writeln(deltaV);
 	} else {
 		Vec2f dampening = Vec2f(-player.velocity).mul(0.05);
 		player.velocity.add(dampening);
@@ -114,4 +104,35 @@ void updatePlayerPhysics(ref Player player) {
 	}
 
 	player.position.add(player.velocity);
+	const float radius = player.getTotalRadius();
+	float x1 = player.position[0] - radius;
+	float y1 = player.position[1] - radius;
+	float x2 = player.position[0] + radius;
+	float y2 = player.position[1] + radius;
+
+	if (x1 < 0) {
+		player.position[0] = radius;
+		player.velocity[0] = 0;
+	}
+	if (y1 < 0) {
+		player.position[1] = radius;
+		player.velocity[1] = 0;
+	}
+	if (x2 > 1) {
+		player.position[0] = 1f - radius;
+		player.velocity[0] = 0;
+	}
+	if (y2 > 1) {
+		player.position[1] = 1f - radius;
+		player.velocity[1] = 0;
+	}
+}
+
+void renderPlayer(ref Player player, SDL_Surface* surface) {
+	SDL_Rect playerRect;
+	playerRect.x = cast(int) ((player.position[0] - player.getTotalRadius()) * SCREEN_SIZE);
+	playerRect.y = cast(int) ((player.position[1] - player.getTotalRadius()) * SCREEN_SIZE);
+	playerRect.w = cast(int) (player.baseRadius * 2 * SCREEN_SIZE);
+	playerRect.h = cast(int) (player.baseRadius * 2 * SCREEN_SIZE);
+	SDL_FillRect(surface, &playerRect, SDL_MapRGB((*surface).format, 0xFF, 0xFF, 0xFF));
 }
