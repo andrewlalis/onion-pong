@@ -27,6 +27,10 @@ void main() {
 			if (e.type == SDL_QUIT) {
 				quit = true;
 				break;
+			} else if (e.type == SDL_MOUSEMOTION) {
+				writefln!"Mouse: %d, %d"(e.motion.x, e.motion.y);
+			} else if (e.type == SDL_MOUSEWHEEL) {
+				writefln!"%s"(e.wheel);
 			}
 		}
 	}
