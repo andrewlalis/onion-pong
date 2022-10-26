@@ -1,40 +1,117 @@
 import std.stdio;
 import bindbc.sdl;
+import std.math;
+import std.algorithm : max;
+import dvec;
 
-void main() {
+import model;
+
+const SCREEN_SIZE = 800;
+
+int main() {
 	SDLSupport support = loadSDL();
 	if (support != sdlSupport) {
 		writeln("Couldn't load SDL.");
-		return;
+		return 1;
 	}
 
 	if (SDL_Init(SDL_INIT_VIDEO) < 0) {
 		writeln("Couldn't initialize SDL.");
-		return;
+		return 1;
 	}
 
-	SDL_Window* window = SDL_CreateWindow("Onion-Pong", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 800, SDL_WINDOW_SHOWN);
+	SDL_Window* window = SDL_CreateWindow("Onion-Pong", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_SIZE, SCREEN_SIZE, SDL_WINDOW_SHOWN);
 	SDL_Surface* surface = SDL_GetWindowSurface(window);
-	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+	SDL_Renderer* renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	writeln("Initialized rendering system");
 
 	SDL_FillRect(surface, null, SDL_MapRGB((*surface).format, 0xFF, 0x00, 0xFF));
 	SDL_UpdateWindowSurface(window);
 
+
+	Player player;
+	player.position = Vec2f(0.5f, 0.5f);
+	player.velocity = Vec2f(0);
+
+	bool running = true;
+	ulong timeStart, timeEnd;
 	SDL_Event e;
-	bool quit = false;
-	while (!quit) {
+	while (running) {
+		timeStart = SDL_GetPerformanceCounter();
+		// Check events
 		while (SDL_PollEvent(&e)) {
-			if (e.type == SDL_QUIT) {
-				quit = true;
+			if (
+				e.type == SDL_QUIT ||
+				e.type == SDL_KEYDOWN && e.key.keysym.scancode == SDL_Scancode.SDL_SCANCODE_ESCAPE
+			) {
+				running = false;
 				break;
-			} else if (e.type == SDL_MOUSEMOTION) {
-				writefln!"Mouse: %d, %d"(e.motion.x, e.motion.y);
-			} else if (e.type == SDL_MOUSEWHEEL) {
-				writefln!"%s"(e.wheel);
+			} else if (e.type == SDL_KEYDOWN || e.type == SDL_KEYUP) {
+				updatePlayerInputState(player, e.key);
 			}
 		}
+
+		// physics
+		updatePlayerPhysics(player);
+		
+		// render
+		SDL_FillRect(surface, null, SDL_MapRGB((*surface).format, 0xFF, 0x00, 0xFF));
+
+		Vec2i playerScreenPosition = Vec2i(cast(int) (player.position[0] * 800f), cast(int) (player.position[1] * 800f));
+		SDL_Rect playerRect;
+		playerRect.x = cast(int) (playerScreenPosition[0] - player.baseRadius / 2);
+		playerRect.y = cast(int) (playerScreenPosition[1] - player.baseRadius / 2);
+		playerRect.w = cast(int) player.baseRadius;
+		playerRect.h = cast(int) player.baseRadius;
+		writeln(playerRect);
+		SDL_FillRect(surface, &playerRect, SDL_MapRGB((*surface).format, 0xFF, 0x00, 0x00));
+
+		SDL_UpdateWindowSurface(window);
+
+
+
+		timeEnd = SDL_GetPerformanceCounter();
+		float elapsedMillis = (timeEnd - timeStart) / cast(float) SDL_GetPerformanceFrequency() * 1000.0f;
+		int millisToDelay = max(0, cast(int) floor(16.666f - elapsedMillis));
+		SDL_Delay(millisToDelay);
 	}
+	writeln("done");
 
 	SDL_DestroyWindow(window);
 	SDL_Quit();
+	return 0;
+}
+
+void updatePlayerInputState(ref Player player, SDL_KeyboardEvent ke) {
+	bool active = ke.type == SDL_KEYDOWN;
+	if (ke.keysym.scancode == SDL_Scancode.SDL_SCANCODE_W) {
+		player.input.up = active;
+	} else if (ke.keysym.scancode == SDL_Scancode.SDL_SCANCODE_S) {
+		player.input.down = active;
+	} else if (ke.keysym.scancode == SDL_Scancode.SDL_SCANCODE_A) {
+		player.input.left = active;
+	} else if (ke.keysym.scancode == SDL_Scancode.SDL_SCANCODE_D) {
+		player.input.right = active;
+	}
+	writeln(player);
+}
+
+void updatePlayerPhysics(ref Player player) {
+	Vec2f deltaV = Vec2f(0);
+	if (player.input.up) deltaV[1] = deltaV[1] - 1;
+	if (player.input.down) deltaV[1] = deltaV[1] + 1;
+	if (player.input.left) deltaV[0] = deltaV[0] - 1;
+	if (player.input.right) deltaV[0] = deltaV[0] + 1;
+	if (deltaV.mag2 > 0) {
+		player.velocity.add(deltaV.norm().mul(0.0005f));
+		writeln(deltaV);
+	} else {
+		Vec2f dampening = Vec2f(-player.velocity).mul(0.05);
+		player.velocity.add(dampening);
+		if (player.velocity.mag() < 0.0001f) {
+			player.velocity.data = [0f, 0f];
+		}
+	}
+
+	player.position.add(player.velocity);
 }
