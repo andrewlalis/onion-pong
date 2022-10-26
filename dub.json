@@ -1,0 +1,13 @@
+{
+	"authors": [
+		"Andrew Lalis"
+	],
+	"copyright": "Copyright © 2022, Andrew Lalis",
+	"dependencies": {
+		"bindbc-sdl": "~>1.2.2",
+		"dvec": "~>0.0.6"
+	},
+	"description": "A simple variation of the classic \"Pong\" game.",
+	"license": "MIT",
+	"name": "onion-pong"
+}

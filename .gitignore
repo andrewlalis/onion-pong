@@ -1,0 +1,15 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/onion-pong
+onion-pong.so
+onion-pong.dylib
+onion-pong.dll
+onion-pong.a
+onion-pong.lib
+onion-pong-test-*
+*.exe
+*.o
+*.obj
+*.lst
