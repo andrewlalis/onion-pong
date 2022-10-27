@@ -17,3 +17,9 @@ struct Player {
 struct PlayerInputState {
     bool up, down, left, right;
 }
+
+struct Ball {
+    Vec2f position;
+    Vec2f velocity;
+    float radius = 0.015f;
+}

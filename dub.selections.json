@@ -3,6 +3,6 @@
 	"versions": {
 		"bindbc-loader": "1.0.1",
 		"bindbc-sdl": "1.2.2",
-		"dvec": "0.0.6"
+		"dvec": "0.0.7"
 	}
 }
