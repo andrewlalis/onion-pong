@@ -155,6 +155,7 @@ void updateBallPhysics(ref Ball ball, double dt) {
 		ball.position.y = 1 - radius - (y2 - 1);
 		ball.velocity.y = -ball.velocity.y;
 	}
+	ball.velocity.mul(1.001f);
 }
 
 void renderPlayer(ref Player player, SDL_Surface* surface) {
