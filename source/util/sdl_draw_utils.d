@@ -65,10 +65,27 @@ void freeWindow(SDL_Window* window) {
 }
 
 
-void drawCircle(SDL_Renderer* renderer, int cx, int cy, int r) {
-    int offsetX = 0;
-    int offsetY = r;
-    int d = r - 1;
-    // TODO: Implement this!
+void SDL_RenderFillCircle(SDL_Renderer* renderer, int cx, int cy, int r) {
+	int offsetX = 0;
+	int offsetY = r;
+	int d = r - 1;
+	while (offsetY >= offsetX) {
+		SDL_RenderDrawLine(renderer, x - offsetY, y + offsetX, x + offsetY, y + offsetX);
+		SDL_RenderDrawLine(renderer, x - offsetX, y + offsetY, x + offsetX, y + offsetY);
+		SDL_RenderDrawLine(renderer, x - offsetX, y - offsetY, x + offsetX, y - offsetY);
+		SDL_RenderDrawLine(renderer, x - offsetY, y - offsetX, x + offsetY, y - offsetX);
+	}
+
+	if (d >= 2 * offsetX) {
+		d -= 2 * offsetX + 1;
+		offsetX -= 1;
+	} else if (d < 2 * (r - offsetY)) {
+		d += 2 * offsetY - 1;
+		offsetY -= 1;
+	} else {
+		d += 2 * (offsetY - offsetX - 1);
+		offsetY -= 1;
+		offsetX += 1;
+	}
 }
 

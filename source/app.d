@@ -44,7 +44,7 @@ int main() {
 		updatePlayerPhysics(player, timeSinceLastPhysicsTick);
 		updateBallPhysics(ball, timeSinceLastPhysicsTick);
 		SDL_FillRect(surface, null, SDL_MapRGB((*surface).format, 0x00, 0x00, 0x00));
-		renderPlayer(player, surface);
+		renderPlayer(player, surface, renderer);
 		renderBall(ball, surface);
 		SDL_UpdateWindowSurface(window);
 
@@ -157,13 +157,14 @@ void updateBallPhysics(ref Ball ball, double dt) {
 	}
 }
 
-void renderPlayer(ref Player player, SDL_Surface* surface) {
-	SDL_Rect playerRect;
-	playerRect.x = cast(int) ((player.position.x - player.getTotalRadius()) * SCREEN_SIZE);
-	playerRect.y = cast(int) ((player.position.y - player.getTotalRadius()) * SCREEN_SIZE);
-	playerRect.w = cast(int) (player.baseRadius * 2 * SCREEN_SIZE);
-	playerRect.h = cast(int) (player.baseRadius * 2 * SCREEN_SIZE);
-	SDL_FillRect(surface, &playerRect, SDL_MapRGB((*surface).format, 0xFF, 0xFF, 0xFF));
+void renderPlayer(ref Player player, SDL_Surface* surface, SDL_Renderer* renderer) {
+	// SDL_Rect playerRect;
+	// playerRect.x = cast(int) ((player.position.x - player.getTotalRadius()) * SCREEN_SIZE);
+	// playerRect.y = cast(int) ((player.position.y - player.getTotalRadius()) * SCREEN_SIZE);
+	// playerRect.w = cast(int) (player.baseRadius * 2 * SCREEN_SIZE);
+	// playerRect.h = cast(int) (player.baseRadius * 2 * SCREEN_SIZE);
+	// SDL_FillRect(surface, &playerRect, SDL_MapRGB((*surface).format, 0xFF, 0xFF, 0xFF));
+	SDL_RenderFillCircle(renderer, cast(int) player.position.x, cast(int) player.position.y, player.getTotalRadius());
 }
 
 void renderBall(ref Ball ball, SDL_Surface* surface) {
