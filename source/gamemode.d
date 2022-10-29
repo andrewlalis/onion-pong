@@ -1,8 +1,12 @@
 module gamemode;
 
-import renderable;
+import bindbc.sdl;
 
-interface Gamemode {
+interface Renderable {
+    void render(SDL_Renderer* renderer);
+}
+
+interface Gamemode : Renderable {
     void tick(double dt);
-    Renderable[] getRenderables();
+    bool isGameOver();
 }
